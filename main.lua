@@ -1,75 +1,143 @@
--- Load the library (make sure this URL is correct for your version)
-local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/refs/heads/main/Example.lua"))()
+-- 🌀 Load WindUI Library
+local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/Example.lua"))()
 
--- Create a window
+-- 🪟 Create Main Window
 local Window = WindUI:CreateWindow({
-    Title = "My App",
-    Icon = "palette",         -- icon name (from the library’s supported icons)
-    Author = "by Me",
-    Folder = "MyAppFolder",
+    Title = "MPT Hub",
+    Icon = "palette",
+    Author = "by Mooping",
+    Folder = "ScriptLoaderHub",  -- folder to save configs
     Size = UDim2.fromOffset(580, 460),
     Theme = "Dark",
-    SideBarWidth = 200,
-    User = {
-        Enabled = true,
-        Anonymous = false,
-        Callback = function()
-            print("User icon clicked!")
+})
+
+-- 🧭 Tabs
+local ScriptsTab = Window:Tab({ Title = "Scripts", Icon = "code" })
+local UtilitiesTab = Window:Tab({ Title = "Utilities", Icon = "wrench" })
+local ConfigTab = Window:Tab({ Title = "Config", Icon = "save" })
+
+---------------------------------------------------------------------
+-- ⚡ Helper Function: Safe Loadstring Runner
+---------------------------------------------------------------------
+local function runScript(url)
+    WindUI:Notify({
+        Title = "Loading...",
+        Content = "Fetching script from:\n" .. url,
+        Duration = 2,
+        Icon = "cloud-download",
+    })
+
+    task.spawn(function()
+        local ok, result = pcall(game.HttpGet, game, url)
+        if not ok then
             WindUI:Notify({
-                Title = "User Action",
-                Content = "You clicked the user button!",
-                Duration = 2
+                Title = "Error",
+                Content = "Failed to fetch script:\n" .. tostring(result),
+                Duration = 3,
+                Icon = "x-circle",
             })
-        end,
-    },
-})
+            return
+        end
 
--- Notify at startup
-WindUI:Notify({
-    Title = "Welcome",
-    Content = "My App with WindUI is ready!",
-    Duration = 3,
-    Icon = "circle-play",
-})
+        local func, loadErr = loadstring(result)
+        if not func then
+            WindUI:Notify({
+                Title = "Loadstring Error",
+                Content = tostring(loadErr),
+                Duration = 3,
+                Icon = "alert-triangle",
+            })
+            return
+        end
 
--- Create tabs/sections
-local MainTab   = Window:Tab({ Title = "Main", Icon = "house" })
-local SettingsTab = Window:Tab({ Title = "Settings", Icon = "gear" })
+        local success, execErr = pcall(func)
+        if not success then
+            WindUI:Notify({
+                Title = "Execution Failed",
+                Content = tostring(execErr),
+                Duration = 3,
+                Icon = "x",
+            })
+            return
+        end
 
--- On “Main” tab: add a button
-MainTab:Button({
-    Title = "Click Me",
-    Desc = "Press this button to do something",
+        WindUI:Notify({
+            Title = "Script Loaded",
+            Content = "Script executed successfully ✅",
+            Duration = 3,
+            Icon = "check",
+        })
+    end)
+end
+
+---------------------------------------------------------------------
+-- 🧪 SCRIPT BUTTONS TAB
+---------------------------------------------------------------------
+ScriptsTab:Button({
+    Title = "🌿 Infinite Yield",
+    Desc = "Executes the Infinite Yield script",
     Callback = function()
-        print("Button was clicked!")
+        runScript("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source")
+    end
+})
+
+-- Add more buttons below if you want:
+--[[
+ScriptsTab:Button({
+    Title = "🚀 Example Script",
+    Desc = "Runs your custom script",
+    Callback = function()
+        runScript("https://your-raw-script-link-here.lua")
+    end
+})
+]]
+
+---------------------------------------------------------------------
+-- 🛠 UTILITIES TAB
+---------------------------------------------------------------------
+UtilitiesTab:Button({
+    Title = "Clear Notifications",
+    Desc = "Clears all active WindUI notifications",
+    Callback = function()
+        WindUI:ClearNotifications()
+    end
+})
+
+UtilitiesTab:Button({
+    Title = "UI Toggle",
+    Desc = "Toggles visibility of the UI",
+    Callback = function()
+        Window:ToggleUI()
+    end
+})
+
+---------------------------------------------------------------------
+-- 💾 CONFIG TAB (Save / Load)
+---------------------------------------------------------------------
+ConfigTab:Button({
+    Title = "Save Config",
+    Desc = "Save your UI settings",
+    Callback = function()
+        WindUI:SaveConfig("MyDefaultConfig")
         WindUI:Notify({
-            Title = "Hello",
-            Content = "You clicked the button!",
+            Title = "Config",
+            Content = "Settings saved ✅",
             Duration = 2,
-            Icon = "smile"
+            Icon = "save"
         })
-    end,
+    end
 })
 
--- On Settings tab: add a toggle and a slider
-SettingsTab:Toggle({
-    Title = "Enable Feature",
-    Value = false,
-    Callback = function(state)
-        print("Toggle changed →", state)
+ConfigTab:Button({
+    Title = "Load Config",
+    Desc = "Load your saved UI settings",
+    Callback = function()
+        WindUI:LoadConfig("MyDefaultConfig")
         WindUI:Notify({
-            Title = "Feature Toggle",
-            Content = "Enabled = " .. tostring(state),
-            Duration = 2
+            Title = "Config",
+            Content = "Settings loaded ✅",
+            Duration = 2,
+            Icon = "upload"
         })
-    end,
-})
-
-SettingsTab:Slider({
-    Title = "Volume",
-    Desc = "Adjust volume level",
-    Value = { Min = 0, Max = 100, Default = 50 },
-    Callback = function(val)
-        print("Slider value →", val)
-    end,
+    end
 })
