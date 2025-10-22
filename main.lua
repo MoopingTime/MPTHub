@@ -55,6 +55,72 @@ local Window = WindUI:CreateWindow({
 })
 
 ---------------------------------------------------------------------
+-- 🌐 DISCORD TAB
+---------------------------------------------------------------------
+local DiscordTab = Window:Tab({
+    Title = "🌐 Discord",
+    Icon = "message-circle",
+})
+
+local defaultInviteCode = "JahZbrg9Kh"
+local defaultInviteLink = "https://discord.gg/" .. defaultInviteCode
+
+local success, Response = pcall(function()
+    local DiscordAPI = "https://discord.com/api/v10/invites/" .. defaultInviteCode .. "?with_counts=true&with_expiration=true"
+    return game:GetService("HttpService"):JSONDecode(WindUI.Creator.Request({
+        Url = DiscordAPI,
+        Method = "GET",
+        Headers = {
+            ["User-Agent"] = "User/MPT-Hub",
+            ["Accept"] = "application/json"
+        }
+    }).Body)
+end)
+
+if success and Response and Response.guild then
+    DiscordTab:Paragraph({
+        Title = Response.guild.name or "MPT Discord",
+        Desc = "Members: " .. (Response.approximate_member_count or "N/A") ..
+               "\nOnline: " .. (Response.approximate_presence_count or "N/A"),
+        Buttons = {
+            {
+                Title = "Copy Invite",
+                Icon = "link",
+                Callback = function()
+                    setclipboard(defaultInviteLink)
+                    WindUI:Notify({
+                        Title = "Invite Copied ✅",
+                        Desc = "Discord invite copied to clipboard!",
+                        Icon = "check",
+                        Duration = 3,
+                    })
+                end,
+            },
+        },
+    })
+else
+    DiscordTab:Paragraph({
+        Title = "MPT Discord",
+        Desc = "Members: N/A\nOnline: N/A",
+        Buttons = {
+            {
+                Title = "Copy Invite",
+                Icon = "link",
+                Callback = function()
+                    setclipboard(defaultInviteLink)
+                    WindUI:Notify({
+                        Title = "Invite Copied ✅",
+                        Desc = "Discord invite copied to clipboard!",
+                        Icon = "check",
+                        Duration = 3,
+                    })
+                end,
+            },
+        },
+    })
+end
+
+---------------------------------------------------------------------
 -- 🌿 PLANTS VS BRAINROT TAB
 ---------------------------------------------------------------------
 local PvBTab = Window:Tab({
@@ -215,14 +281,14 @@ FischTab:Button({
 })
 
 ---------------------------------------------------------------------
--- 🐠 FISH IT TAB
+-- 🐟 FISH IT TAB
 ---------------------------------------------------------------------
-local FischTab = Window:Tab({
-    Title = "🐠 Fish It",
+local FishItTab = Window:Tab({
+    Title = "🐟 Fish It",
     Icon = "fish",
 })
 
-FischTab:Button({
+FishItTab:Button({
     Title = "Than Hub",
     Desc = "Fish It - Than Hub Script",
     Callback = function()
@@ -256,4 +322,4 @@ SettingsTab:Toggle({
 })
 
 ---------------------------------------------------------------------
-print("✅ MPT Hub | Loaded all scripts successfully!")
+print("✅ MPT Hub | v1.0.0 loaded successfully with Discord tab!")
